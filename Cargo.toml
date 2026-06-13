@@ -1,0 +1,8 @@
+[workspace]
+members = [
+    "ws-core",
+    "lambdas/korabo-notification-worker"
+]
+resolver = "2"
+
+[workspace.dependencies]
