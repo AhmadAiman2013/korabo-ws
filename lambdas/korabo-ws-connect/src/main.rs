@@ -67,17 +67,12 @@ async fn main() -> Result<(), Error> {
 }
 
 async fn handler(
-    event: LambdaEvent<ApiGatewayWebsocketProxyRequest>,
+    _event: LambdaEvent<ApiGatewayWebsocketProxyRequest>,
     _state: Arc<State>
 ) -> Result<Value, Error> {
-    let connection_id = event
-        .payload
-        .request_context
-        .connection_id
-        .as_deref()
-        .unwrap_or("unknown");
 
 
-    Ok(json!({ "statusCode": 200, "connectionId": connection_id }))
+
+    Ok(json!({ "statusCode": 200 }))
 
 }
