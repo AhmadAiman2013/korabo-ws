@@ -10,7 +10,7 @@ pub fn extract_claims(
     let token = event
         .query_string_parameters
         .first("token")
-        .ok_or(WsError::Unauthorized)?;
+        .ok_or(WsError::Unauthorized("no token query".to_string()))?;
 
-    extract_jwt_claims(token, jwt).map_err(|_| WsError::Unauthorized)
+    extract_jwt_claims(token, jwt).map_err(|e| WsError::Unauthorized(e.to_string()))
 }

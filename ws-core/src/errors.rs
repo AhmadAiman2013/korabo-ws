@@ -2,8 +2,8 @@ use thiserror::Error;
 
 #[derive(Debug, Error)]
 pub enum WsError {
-    #[error("Unauthorized")]
-    Unauthorized,
+    #[error("Unauthorized: {0}")]
+    Unauthorized(String),
 
     #[error("Forbidden: {0}")]
     Forbidden(String),
@@ -35,7 +35,7 @@ impl WsError {
     /// should always return 200 and push the error via management API instead.
     pub fn status_code(&self) -> u16 {
         match self {
-            WsError::Unauthorized => 401,
+            WsError::Unauthorized(_) => 401,
             WsError::Forbidden(_) => 403,
             WsError::BadRequest(_) => 400,
             WsError::NotFound(_) => 404,
