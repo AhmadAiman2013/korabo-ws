@@ -6,7 +6,7 @@ use aws_sdk_apigatewaymanagement::config::Builder as ApigwBuilder;
 use aws_sdk_dynamodb::Client as DynamoClient;
 use jwt::JwtPublicKey;
 use lambda_runtime::{run, service_fn, Error, LambdaEvent};
-use lambda_runtime::tracing::{init_default_subscriber, warn};
+use lambda_runtime::tracing::{error, init_default_subscriber, warn};
 use serde_json::{json, Value};
 use ws_core::{
     auth::extract_claims,
@@ -67,12 +67,27 @@ async fn main() -> Result<(), Error> {
 }
 
 async fn handler(
-    _event: LambdaEvent<ApiGatewayWebsocketProxyRequest>,
-    _state: Arc<State>
+    event: LambdaEvent<ApiGatewayWebsocketProxyRequest>,
+    state: Arc<State>
 ) -> Result<Value, Error> {
+    let connection_id = event
+        .payload
+        .request_context
+        .connection_id
+        .as_deref()
+        .unwrap_or("unknown");
+
+    // 1. Validate JWT — reject connection with 401 if invalid.
+    let claims = match extract_claims(&event.payload, &state.jwt) {
+        Ok(c) => c,
+        Err(e) => {
+            error!(connection_id, error = %e, "JWT validation failed on $connect");
+            return Ok(json!({ "statusCode": 401 }));
+        }
+    };
 
 
 
-    Ok(json!({ "statusCode": 200 }))
+    Ok(json!({"statusCode" : 200}))
 
 }
