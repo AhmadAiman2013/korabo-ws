@@ -3,3 +3,13 @@ name = "ws-core"
 version = "0.1.0"
 edition = "2021"
 
+[dependencies]
+aws-sdk-dynamodb = { workspace = true }
+aws-sdk-apigatewaymanagement = { workspace = true }
+aws_lambda_events = { workspace = true }
+serde = { workspace = true }
+serde_dynamo = { workspace = true }
+thiserror = { workspace = true }
+time = { workspace = true }
+jwt = { workspace = true }
+claims = { workspace = true }
