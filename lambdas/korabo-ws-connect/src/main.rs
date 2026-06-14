@@ -67,10 +67,24 @@ async fn main() -> Result<(), Error> {
 }
 
 async fn handler(
-    _event: LambdaEvent<ApiGatewayWebsocketProxyRequest>,
-    _state: Arc<State>
+    event: LambdaEvent<ApiGatewayWebsocketProxyRequest>,
+    state: Arc<State>
 ) -> Result<Value, Error> {
+    let connection_id = match event
+        .payload
+        .request_context
+        .connection_id
+        .as_deref()
+        .filter(|s| !s.is_empty())
+    {
+        Some(id) => id,
+        None => {
+            warn!("Missing connectionId in $connect request context — malformed event");
+            return Ok(json!({ "statusCode": 500}));
+        }
+    };
 
-    Ok(json!({ "statusCode": 200 }))
+
+    Ok(json!({ "statusCode": 200, "connectionId": connection_id }))
 
 }
