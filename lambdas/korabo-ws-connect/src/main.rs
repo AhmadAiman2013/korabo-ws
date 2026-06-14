@@ -80,7 +80,7 @@ async fn handler(
         Some(id) => id,
         None => {
             warn!("Missing connectionId in $connect request context — malformed event");
-            return Ok(json!({ "statusCode": 500}));
+            return Ok(json!({ "statusCode": 200}));
         }
     };
 
