@@ -8,7 +8,10 @@ use jwt::JwtPublicKey;
 use lambda_runtime::{run, service_fn, Error, LambdaEvent};
 use lambda_runtime::tracing::{init_default_subscriber, warn};
 use serde_json::{json, Value};
-use ws_core::management::ManagementClient;
+use ws_core::{
+    auth::extract_claims,
+    management::ManagementClient
+};
 
 struct State {
     dynamo: DynamoClient,
@@ -64,25 +67,10 @@ async fn main() -> Result<(), Error> {
 }
 
 async fn handler(
-    event: LambdaEvent<ApiGatewayWebsocketProxyRequest>,
+    _event: LambdaEvent<ApiGatewayWebsocketProxyRequest>,
     _state: Arc<State>
 ) -> Result<Value, Error> {
-    let connection_id = match event
-        .payload
-        .request_context
-        .connection_id
-        .as_deref()
-        .filter(|s| !s.is_empty())
-    {
-        Some(id) => id,
-        None => {
-            warn!("Missing connectionId in $connect request context — malformed event");
-            return Ok(json!({ "statusCode": 500}));
-        }
-    };
-    
-    
-    
-    Ok(json!({ "statusCode": 200, "connectionId": connection_id }))
-        
+
+    Ok(json!({ "statusCode": 200 }))
+
 }

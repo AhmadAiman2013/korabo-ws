@@ -1575,9 +1575,6 @@ dependencies = [
 [[package]]
 name = "korabo-ws-disconnect"
 version = "0.1.0"
-dependencies = [
- "tokio",
-]
 
 [[package]]
 name = "lambda_runtime"
