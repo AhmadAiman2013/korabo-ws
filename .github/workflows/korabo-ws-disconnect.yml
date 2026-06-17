@@ -1,4 +1,4 @@
-name: korabo-ws-connect.yml
+name: korabo-ws-disconnect.yml
 on:
   push:
     branches:
