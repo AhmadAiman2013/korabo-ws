@@ -1,5 +1,5 @@
 use aws_lambda_events::apigw::ApiGatewayWebsocketProxyRequest;
-use jwt::{extract_claims as extract_jwt_claims, JwtPublicKey};
+use jwt::{extract_claims_without_bearer, JwtPublicKey};
 use claims::Claims;
 use crate::errors::WsError;
 
@@ -12,5 +12,5 @@ pub fn extract_claims(
         .first("token")
         .ok_or(WsError::Unauthorized("no token query".to_string()))?;
 
-    extract_jwt_claims(token, jwt).map_err(|e| WsError::Unauthorized(e.to_string()))
+    extract_claims_without_bearer(token, jwt).map_err(|e| WsError::Unauthorized(e.to_string()))
 }

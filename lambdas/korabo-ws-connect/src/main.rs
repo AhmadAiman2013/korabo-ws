@@ -78,7 +78,7 @@ async fn handler(
         .unwrap_or("unknown");
 
     // 1. Validate JWT — reject connection with 401 if invalid.
-    let claims = match extract_claims(&event.payload, &state.jwt) {
+    let _claims = match extract_claims(&event.payload, &state.jwt) {
         Ok(c) => c,
         Err(e) => {
             error!(connection_id, error = %e, "JWT validation failed on $connect");

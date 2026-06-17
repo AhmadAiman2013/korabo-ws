@@ -700,8 +700,8 @@ dependencies = [
 
 [[package]]
 name = "claims"
-version = "0.8.0"
-source = "git+https://github.com/AhmadAiman2013/korabo-common.git?tag=0.9.0#88162be4b9b27b1ea2194e7ba379f32d089e75ee"
+version = "0.10.0"
+source = "git+https://github.com/AhmadAiman2013/korabo-common.git?tag=0.11.0#edea0a90649b011f6b4c6f48c4a57147254c596f"
 dependencies = [
  "serde",
 ]
@@ -1532,8 +1532,8 @@ dependencies = [
 
 [[package]]
 name = "jwt"
-version = "0.9.0"
-source = "git+https://github.com/AhmadAiman2013/korabo-common.git?tag=0.9.0#88162be4b9b27b1ea2194e7ba379f32d089e75ee"
+version = "0.10.0"
+source = "git+https://github.com/AhmadAiman2013/korabo-common.git?tag=0.11.0#edea0a90649b011f6b4c6f48c4a57147254c596f"
 dependencies = [
  "axum",
  "claims",

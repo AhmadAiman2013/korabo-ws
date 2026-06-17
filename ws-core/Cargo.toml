@@ -11,5 +11,5 @@ serde = { workspace = true }
 serde_dynamo = { workspace = true }
 thiserror = { workspace = true }
 time = { workspace = true }
-jwt = { workspace = true }
+jwt = {workspace = true }
 claims = { workspace = true }
