@@ -1,8 +1,9 @@
 use crate::errors::WsError;
 use crate::utils::{now_rfc3339, ttl_hours};
+use aws_sdk_dynamodb::types::AttributeValue;
 use aws_sdk_dynamodb::Client;
 use serde::{Deserialize, Serialize};
-use serde_dynamo::to_item;
+use serde_dynamo::{from_item, to_item};
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct WsConnection {
@@ -31,6 +32,51 @@ pub async fn put_connection(
         .put_item()
         .table_name(table)
         .set_item(Some(item))
+        .send()
+        .await
+        .map_err(|e| WsError::DynamoDB(e.to_string()))?;
+
+    Ok(())
+}
+
+pub async fn get_connection(
+    dynamo: &Client,
+    table: &str,
+    connection_id: &str,
+) -> Result<WsConnection, WsError> {
+    let resp = dynamo
+        .get_item()
+        .table_name(table)
+        .key(
+            "connection_id",
+            AttributeValue::S(connection_id.to_string()),
+        )
+        .send()
+        .await
+        .map_err(|e| WsError::DynamoDB(e.to_string()))?;
+
+    resp.item()
+        .map(|item| from_item(item.clone()).map_err(|e| WsError::Serialization(e.to_string())))
+        .unwrap_or_else(|| {
+            Err(WsError::NotFound(format!(
+                "connection {} not found",
+                connection_id
+            )))
+        })
+}
+
+pub async fn delete_connection(
+    dynamo: &Client,
+    table: &str,
+    connection_id: &str,
+) -> Result<(), WsError> {
+    dynamo
+        .delete_item()
+        .table_name(table)
+        .key(
+            "connection_id",
+            AttributeValue::S(connection_id.to_string()),
+        )
         .send()
         .await
         .map_err(|e| WsError::DynamoDB(e.to_string()))?;

@@ -1,4 +1,5 @@
 use crate::errors::WsError;
+use crate::utils::now_rfc3339;
 use aws_sdk_dynamodb::types::AttributeValue;
 use aws_sdk_dynamodb::Client;
 
@@ -21,4 +22,19 @@ pub async fn get_last_seen(
         .and_then(|item| item.get("last_seen_at"))
         .and_then(|v| v.as_s().ok())
         .cloned())
+}
+
+/// Record that the user disconnected now.
+pub async fn update_last_seen(dynamo: &Client, table: &str, user_id: &str) -> Result<(), WsError> {
+    dynamo
+        .update_item()
+        .table_name(table)
+        .key("user_id", AttributeValue::S(user_id.to_string()))
+        .update_expression("SET last_seen_at = :ts")
+        .expression_attribute_values(":ts", AttributeValue::S(now_rfc3339()))
+        .send()
+        .await
+        .map_err(|e| WsError::DynamoDB(e.to_string()))?;
+
+    Ok(())
 }

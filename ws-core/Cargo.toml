@@ -9,6 +9,7 @@ aws-sdk-apigatewaymanagement = { workspace = true }
 aws_lambda_events = { workspace = true }
 serde = { workspace = true }
 serde_dynamo = { workspace = true }
+serde_json = {workspace = true}
 thiserror = { workspace = true }
 time = { workspace = true }
 jwt = {workspace = true }

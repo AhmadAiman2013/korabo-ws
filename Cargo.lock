@@ -1575,6 +1575,16 @@ dependencies = [
 [[package]]
 name = "korabo-ws-disconnect"
 version = "0.1.0"
+dependencies = [
+ "aws-config",
+ "aws-sdk-dynamodb",
+ "aws_lambda_events",
+ "lambda_runtime",
+ "serde_json",
+ "tokio",
+ "tracing",
+ "ws-core",
+]
 
 [[package]]
 name = "lambda_runtime"
@@ -2891,6 +2901,7 @@ dependencies = [
  "jwt",
  "serde",
  "serde_dynamo",
+ "serde_json",
  "thiserror",
  "time",
 ]
