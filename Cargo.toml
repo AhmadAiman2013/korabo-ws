@@ -4,7 +4,8 @@ members = [
     "lambdas/korabo-notification-worker",
     "lambdas/korabo-ws-default",
     "lambdas/korabo-ws-connect",
-    "lambdas/korabo-ws-disconnect"
+    "lambdas/korabo-ws-disconnect",
+    "lambdas/korabo-ws-info"
 ]
 resolver = "2"
 

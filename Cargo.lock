@@ -1552,7 +1552,6 @@ name = "korabo-ws-connect"
 version = "0.1.0"
 dependencies = [
  "aws-config",
- "aws-sdk-apigatewaymanagement",
  "aws-sdk-dynamodb",
  "aws_lambda_events",
  "jwt",
@@ -1583,6 +1582,20 @@ dependencies = [
  "serde_json",
  "tokio",
  "tracing",
+ "ws-core",
+]
+
+[[package]]
+name = "korabo-ws-info"
+version = "0.1.0"
+dependencies = [
+ "aws-config",
+ "aws-sdk-apigatewaymanagement",
+ "aws-sdk-dynamodb",
+ "aws_lambda_events",
+ "lambda_runtime",
+ "serde_json",
+ "tokio",
  "ws-core",
 ]
 

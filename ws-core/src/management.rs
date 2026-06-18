@@ -32,7 +32,7 @@ impl ManagementClient {
                 PostToConnectionError::GoneException(_) => {
                     WsError::ConnectionGone(connection_id.to_string())
                 }
-                other => WsError::ManagementApi(format!("{other:?}")),
+                other => WsError::ManagementApi(other.to_string()),
             })?;
 
         Ok(())
