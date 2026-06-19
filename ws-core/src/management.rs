@@ -37,4 +37,23 @@ impl ManagementClient {
 
         Ok(())
     }
+
+    /// Push to a connection and silently discard Gone errors (stale connection_ids).
+    /// Returns `true` if the push succeeded, `false` if the connection was gone.
+    /// Other errors are logged and treated as transient failures (also returns false).
+    pub async fn push_or_ignore_gone(
+        &self,
+        connection_id: &str,
+        push: &ServerPush,
+    ) -> bool {
+        match self.post_to_connection(connection_id, push) .await {
+            Ok(_) => true,
+            Err(WsError::ConnectionGone(_)) => {
+                false
+            }
+            Err(_) => {
+                false
+            }
+        }
+    }
 }

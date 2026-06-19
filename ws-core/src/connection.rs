@@ -1,5 +1,5 @@
 use crate::errors::WsError;
-use crate::utils::{now_rfc3339, ttl_hours};
+use crate::utils::{now_rfc3339, return_collection_ids, ttl_hours};
 use aws_sdk_dynamodb::types::AttributeValue;
 use aws_sdk_dynamodb::Client;
 use serde::{Deserialize, Serialize};
@@ -82,4 +82,25 @@ pub async fn delete_connection(
         .map_err(|e| WsError::DynamoDB(e.to_string()))?;
 
     Ok(())
+}
+
+pub async fn get_user_connections(
+    dynamo: &Client,
+    table: &str,
+    user_id: &str,
+) -> Result<Vec<String>, WsError> {
+    let resp = dynamo
+        .query()
+        .table_name(table)
+        .index_name("user_id-index")
+        .key_condition_expression("user_id = :uid")
+        .expression_attribute_values(":uid", AttributeValue::S(user_id.to_string()))
+        .projection_expression("connection_id")
+        .send()
+        .await
+        .map_err(|e| WsError::DynamoDB(e.to_string()))?;
+    
+    let ids = return_collection_ids(resp);
+    
+    Ok(ids)
 }

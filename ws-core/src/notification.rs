@@ -1,6 +1,12 @@
 use crate::errors::WsError;
+use crate::types::NotificationRecord;
+use crate::utils::now_rfc3339;
 use aws_sdk_dynamodb::types::{AttributeValue, Select};
 use aws_sdk_dynamodb::Client;
+use serde_dynamo::to_item;
+use serde_json::Value;
+use std::collections::HashMap;
+use uuid::Uuid;
 
 pub async fn get_unread_count(dynamo: &Client, table: &str, user_id: &str) -> Result<i64, WsError> {
     let resp = dynamo
@@ -15,4 +21,56 @@ pub async fn get_unread_count(dynamo: &Client, table: &str, user_id: &str) -> Re
         .map_err(|e| WsError::DynamoDB(e.to_string()))?;
 
     Ok(resp.count() as i64)
+}
+
+/// Write a new notification and return the record so the caller can push it
+/// over WebSocket immediately.
+///
+/// The `unread_user_id` sparse GSI attribute is set here and REMOVED by
+/// `mark_notifications_read`, which causes the item to drop out of the
+/// unread-index automatically.
+pub async fn put_notification(
+    dynamo: &Client,
+    table: &str,
+    user_id: &str,
+    notification_type: &str,
+    actor_id: &str,
+    payload: Value,
+) -> Result<NotificationRecord, WsError> {
+    let created_at = now_rfc3339();
+    let notification_id = Uuid::new_v4().to_string();
+
+    let sort_key = format!("{}#{}", created_at, notification_id);
+
+    let record = NotificationRecord {
+        user_id: user_id.to_string(),
+        sort_key: sort_key.clone(),
+        notification_id: sort_key.clone(),
+        notification_type: notification_type.to_string(),
+        actor_id: actor_id.to_string(),
+        payload,
+        is_read: false,
+        read_at: None,
+        created_at,
+    };
+
+    let mut item: HashMap<String, AttributeValue> =
+        to_item(&record).map_err(|e| WsError::Serialization(e.to_string()))?;
+
+    // Sparse GSI attribute — present only when the notification is unread.
+    // DynamoDB will include this item in unread-index as long as this attribute exists.
+    item.insert(
+        "unread_user_id".to_string(),
+        AttributeValue::S(user_id.to_string()),
+    );
+
+    dynamo
+        .put_item()
+        .table_name(table)
+        .set_item(Some(item))
+        .send()
+        .await
+        .map_err(|e| WsError::DynamoDB(e.to_string()))?;
+
+    Ok(record)
 }
