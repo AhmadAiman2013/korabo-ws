@@ -51,7 +51,7 @@ pub struct SqsNotificationEvent {
     pub created_at: String,
 }
 
-#[derive(Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug)]
 pub struct NotificationTargeting {
     pub user_ids: Vec<String>,
     pub group_id: Option<String>,
