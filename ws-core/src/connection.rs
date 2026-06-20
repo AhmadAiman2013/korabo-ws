@@ -99,8 +99,8 @@ pub async fn get_user_connections(
         .send()
         .await
         .map_err(|e| WsError::DynamoDB(e.to_string()))?;
-    
+
     let ids = return_collection_ids(resp);
-    
+
     Ok(ids)
 }
