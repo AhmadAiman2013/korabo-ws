@@ -58,9 +58,3 @@ pub struct NotificationTargeting {
     pub exclude_user_ids: Option<Vec<String>>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
-#[serde(rename_all = "lowercase")]
-pub enum Mode {
-    Single,
-    Group
-}
