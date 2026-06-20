@@ -41,7 +41,7 @@ pub struct NotificationRecord {
 }
 
 // ── SQS event published by other modules ─────────────────────────────────────
-#[derive(Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug)]
 pub struct SqsNotificationEvent {
     pub event_id: String,
     pub event_type: String,
