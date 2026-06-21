@@ -1,4 +1,3 @@
-use std::env::var;
 use aws_config::BehaviorVersion;
 use aws_sdk_dynamodb::Client;
 use axum::extract::State;
@@ -11,6 +10,7 @@ use lambda_http::tracing::init_default_subscriber;
 use lambda_http::{run, Error};
 use serde::Deserialize;
 use serde_json::{json, Value};
+use std::env::var;
 use tower_http::cors::CorsLayer;
 use ws_core::errors::ResponseError;
 use ws_core::notification::mark_notifications_read;
@@ -40,7 +40,8 @@ async fn main() -> Result<(), Error> {
     let jwt = JwtPublicKey::from_jwks_file(
         var("JWT_ISSUER").expect("JWT_ISSUER must be set"),
         var("JWT_AUDIENCE").expect("JWT_AUDIENCE must be set"),
-    ).expect("Failed to load JWKS");
+    )
+    .expect("Failed to load JWKS");
 
     let config = aws_config::load_defaults(BehaviorVersion::latest()).await;
 
@@ -99,9 +100,12 @@ async fn mark_noti_read(
     )
     .await?;
 
-    Ok((StatusCode::CREATED, Json(json!({
-        "message": "Notification was marked as read",
-    }))))
+    Ok((
+        StatusCode::CREATED,
+        Json(json!({
+            "message": "Notification was marked as read",
+        })),
+    ))
 }
 
 async fn health_check() -> Json<Value> {

@@ -58,4 +58,4 @@ jobs:
       - name: Build and deploy lambda
         run: |
           cargo lambda build --release
-          cargo lambda deploy korabo-notification-mark-reaad
+          cargo lambda deploy korabo-notification-mark-read
