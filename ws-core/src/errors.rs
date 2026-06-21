@@ -1,3 +1,8 @@
+use axum::http::StatusCode;
+use axum::response::{IntoResponse, Response};
+use axum::Json;
+use lambda_http::tracing::error;
+use serde_json::json;
 use thiserror::Error;
 
 #[derive(Debug, Error)]
@@ -41,5 +46,35 @@ impl WsError {
             WsError::NotFound(_) => 404,
             _ => 500,
         }
+    }
+}
+
+#[derive(Debug, Error)]
+pub enum ResponseError {
+    #[error(transparent)]
+    BadRequest(#[from] WsError),
+}
+
+impl IntoResponse for ResponseError {
+    fn into_response(self) -> Response {
+        let (status, code, message) = match &self {
+            ResponseError::BadRequest(e) => {
+                error!("BadRequest: {:?}", e);
+                (
+                    StatusCode::BAD_REQUEST,
+                    "korabo_noti_401",
+                    "An unexpected error occurred".to_string(),
+                )
+            }
+        };
+
+        (
+            status,
+            Json(json!({
+                "code": code,
+                "message": message
+            })),
+        )
+            .into_response()
     }
 }

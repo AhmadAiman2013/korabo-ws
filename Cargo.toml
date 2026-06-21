@@ -5,7 +5,8 @@ members = [
     "lambdas/korabo-ws-default",
     "lambdas/korabo-ws-connect",
     "lambdas/korabo-ws-disconnect",
-    "lambdas/korabo-ws-info"
+    "lambdas/korabo-ws-info",
+    "lambdas/korabo-notification-mark-read"
 ]
 resolver = "2"
 
@@ -13,7 +14,9 @@ resolver = "2"
 aws-config = { version = "1.8.18", features = ["behavior-version-latest"] }
 aws-sdk-dynamodb = "1.116.0"
 aws-sdk-apigatewaymanagement = "1.103.0"
+axum = "0.8.9"
 lambda_runtime = "1.2.1"
+lambda_http = "1.2.1"
 aws_lambda_events = { version = "1.2.0", features = ["apigw", "sqs"] }
 tokio = { version = "1.52.3", features = ["macros"] }
 serde = { version = "1.0.228", features = ["derive"] }
@@ -28,3 +31,4 @@ time = { version = "0.3.49", features = ["formatting", "macros"] }
 jwt = { git = "https://github.com/AhmadAiman2013/korabo-common.git", tag = "0.11.0" }
 claims = { git = "https://github.com/AhmadAiman2013/korabo-common.git", tag = "0.11.0" }
 ws-core = { path = "ws-core" }
+tower-http = { version = "0.7.0", features = ["cors"] }

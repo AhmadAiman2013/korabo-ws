@@ -74,3 +74,36 @@ pub async fn put_notification(
 
     Ok(record)
 }
+
+/// Mark a batch of notifications as read.
+///
+/// `notification_ids` are the sort_key values returned in pushes and history
+/// (they are equal to the `notification_id` field on `NotificationRecord`).
+///
+/// The UPDATE removes `unread_user_id`, which drops the item from the sparse
+/// unread-index GSI so it no longer appears in unread queries.
+pub async fn mark_notifications_read(
+    dynamo: &Client,
+    table: &str,
+    user_id: &str,
+    notification_id: &[String],
+) -> Result<(), WsError> {
+    let read_at = now_rfc3339();
+
+    for notification_id in notification_id {
+        dynamo
+            .update_item()
+            .table_name(table)
+            .key("user_id", AttributeValue::S(user_id.to_string()))
+            .key("sort_key", AttributeValue::S(notification_id.to_owned()))
+            .update_expression("SET is_read = :r, read_at = :t REMOVE unread_user_id")
+            .expression_attribute_values(":r", AttributeValue::Bool(true))
+            .expression_attribute_values(":t", AttributeValue::S(read_at.to_owned()))
+            .condition_expression("attribute_exists(sort_key)")
+            .send()
+            .await
+            .map_err(|e| WsError::DynamoDB(e.to_string()))?;
+    }
+
+    Ok(())
+}

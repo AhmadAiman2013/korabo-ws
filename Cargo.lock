@@ -899,6 +899,15 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "91622ff5e7162018101f2fea40d6ebf4a78bbe5a49736a2020649edf9693679e"
 
 [[package]]
+name = "encoding_rs"
+version = "0.8.35"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "75030f3c4f45dafd7586dd6780965a8c7e8e285a5ecb86713e63a79c5b2766f3"
+dependencies = [
+ "cfg-if",
+]
+
+[[package]]
 name = "equivalent"
 version = "1.0.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1590,6 +1599,22 @@ dependencies = [
 ]
 
 [[package]]
+name = "korabo-notification-mark-read"
+version = "0.1.0"
+dependencies = [
+ "aws-config",
+ "aws-sdk-dynamodb",
+ "axum",
+ "jwt",
+ "lambda_http",
+ "serde",
+ "serde_json",
+ "tokio",
+ "tower-http",
+ "ws-core",
+]
+
+[[package]]
 name = "korabo-notification-worker"
 version = "0.1.0"
 dependencies = [
@@ -1654,6 +1679,31 @@ dependencies = [
  "serde_json",
  "tokio",
  "ws-core",
+]
+
+[[package]]
+name = "lambda_http"
+version = "1.2.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "9f7f1395a7854d32e6f0c366448740dceb2e1bcb90bbbbf2785152e0ca3283e0"
+dependencies = [
+ "aws_lambda_events",
+ "bytes",
+ "encoding_rs",
+ "futures-util",
+ "http 1.4.2",
+ "http-body 1.0.1",
+ "http-body-util",
+ "hyper 1.10.1",
+ "lambda_runtime",
+ "mime",
+ "percent-encoding",
+ "pin-project-lite",
+ "serde",
+ "serde_json",
+ "serde_urlencoded",
+ "tokio-stream",
+ "url",
 ]
 
 [[package]]
@@ -2606,6 +2656,21 @@ dependencies = [
 ]
 
 [[package]]
+name = "tower-http"
+version = "0.7.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "b11f75e912b0c2be01b63d8cf8057b8c3f97cf34abb3d431a3a4c8675498e233"
+dependencies = [
+ "bitflags",
+ "bytes",
+ "http 1.4.2",
+ "percent-encoding",
+ "pin-project-lite",
+ "tower-layer",
+ "tower-service",
+]
+
+[[package]]
 name = "tower-layer"
 version = "0.3.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -3127,8 +3192,10 @@ dependencies = [
  "aws-sdk-apigatewaymanagement",
  "aws-sdk-dynamodb",
  "aws_lambda_events",
+ "axum",
  "claims",
  "jwt",
+ "lambda_http",
  "serde",
  "serde_dynamo",
  "serde_json",

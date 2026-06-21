@@ -7,11 +7,13 @@ edition = "2021"
 aws-sdk-dynamodb = { workspace = true }
 aws-sdk-apigatewaymanagement = { workspace = true }
 aws_lambda_events = { workspace = true }
+axum = {workspace = true}
 serde = { workspace = true }
 serde_dynamo = { workspace = true }
 serde_json = {workspace = true}
 thiserror = { workspace = true }
 time = { workspace = true }
+lambda_http = {workspace = true}
 jwt = {workspace = true }
 claims = { workspace = true }
 uuid = { workspace = true}

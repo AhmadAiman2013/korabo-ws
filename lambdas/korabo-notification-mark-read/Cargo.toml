@@ -1,0 +1,16 @@
+[package]
+name = "korabo-notification-mark-read"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+axum = { workspace = true }
+aws-config = { workspace = true }
+aws-sdk-dynamodb = { workspace = true }
+jwt = {workspace = true}
+lambda_http = { workspace = true }
+serde_json = {workspace = true}
+tokio = { workspace = true }
+tower-http = {workspace = true}
+ws-core = {workspace = true}
+serde = {workspace = true}
