@@ -54,6 +54,7 @@ async fn main() -> Result<(), Error> {
     .await
 }
 
+// handler
 async fn handler(
     event: LambdaEvent<ApiGatewayWebsocketProxyRequest>,
     state: Arc<State>,

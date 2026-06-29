@@ -16,7 +16,7 @@ jobs:
     runs-on: ubuntu-latest
     defaults:
       run:
-        working-directory: lambdas/korabo-chatp-subscribe
+        working-directory: lambdas/korabo-chat-subscribe
 
     steps:
       - name: Checkout code
