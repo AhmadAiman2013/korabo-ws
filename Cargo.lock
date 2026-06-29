@@ -1599,6 +1599,20 @@ dependencies = [
 ]
 
 [[package]]
+name = "korabo-chat-subscribe"
+version = "0.1.0"
+dependencies = [
+ "aws-config",
+ "aws-sdk-apigatewaymanagement",
+ "aws-sdk-dynamodb",
+ "aws_lambda_events",
+ "lambda_runtime",
+ "serde_json",
+ "tokio",
+ "ws-core",
+]
+
+[[package]]
 name = "korabo-notification-mark-read"
 version = "0.1.0"
 dependencies = [

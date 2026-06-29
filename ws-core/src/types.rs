@@ -1,6 +1,17 @@
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
 
+#[derive(Deserialize, Debug)]
+#[serde(tag = "action")]
+pub enum ClientMessage {
+
+    #[serde(rename = "chat.join")]
+    ChatJoin { group_id: String },
+
+    #[serde(rename = "chat.leave")]
+    ChatLeave { group_id: String },
+}
+
 #[derive(Serialize, Debug, Clone)]
 pub enum ServerPush {
     
@@ -8,6 +19,15 @@ pub enum ServerPush {
     Connected {
         last_seen_at: Option<String>,
         unread_notification_count: i64,
+    },
+
+    #[serde(rename = "chat.message")]
+    ChatMessage {
+        group_id: String,
+        message_id: String,
+        sender_id: String,
+        content: String,
+        created_at: String,
     },
 
     /// A real-time notification pushed after SQS consumption.
@@ -20,6 +40,9 @@ pub enum ServerPush {
         payload: Value,
         created_at: String,
     },
+
+    #[serde(rename = "ack")]
+    Ack { action: String },
     
     #[serde(rename = "error")]
     Error { code: String, message: String }

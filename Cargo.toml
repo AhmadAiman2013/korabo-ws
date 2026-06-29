@@ -6,7 +6,8 @@ members = [
     "lambdas/korabo-ws-connect",
     "lambdas/korabo-ws-disconnect",
     "lambdas/korabo-ws-info",
-    "lambdas/korabo-notification-mark-read"
+    "lambdas/korabo-notification-mark-read",
+    "lambdas/korabo-chat-subscribe"
 ]
 resolver = "2"
 

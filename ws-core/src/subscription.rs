@@ -1,6 +1,64 @@
 use crate::errors::WsError;
 use aws_sdk_dynamodb::types::AttributeValue;
 use aws_sdk_dynamodb::Client;
+use serde::{Deserialize, Serialize};
+use serde_dynamo::to_item;
+use crate::utils::{now_rfc3339, ttl_hours};
+
+#[derive(Serialize, Deserialize, Debug)]
+pub struct ChatSubscription {
+    pub group_id: String,
+    pub connection_id: String,
+    pub user_id: String,
+    pub subscribed_at: String,
+    pub ttl: i64,
+}
+
+pub async fn put_subscription(
+    dynamo: &Client,
+    table: &str,
+    group_id: &str,
+    connection_id: &str,
+    user_id: &str,
+) -> Result<(), WsError> {
+    let sub = ChatSubscription {
+        group_id: group_id.to_string(),
+        connection_id: connection_id.to_string(),
+        user_id: user_id.to_string(),
+        subscribed_at: now_rfc3339(),
+        ttl: ttl_hours(24),
+    };
+    
+    let item = to_item(sub).map_err(|e| WsError::Serialization(e.to_string()))?;
+    
+    dynamo
+        .put_item()
+        .table_name(table)
+        .set_item(Some(item))
+        .send()
+        .await
+        .map_err(|e| WsError::DynamoDB(e.to_string()))?;
+    
+    Ok(())
+}
+
+pub async fn delete_subscription(
+    dynamo: &Client,
+    table: &str,
+    group_id: &str,
+    connection_id: &str,
+) -> Result<(), WsError> {
+    dynamo
+        .delete_item()
+        .table_name(table)
+        .key("group_id", AttributeValue::S(group_id.to_string()))
+        .key("connection_id", AttributeValue::S(connection_id.to_string()))
+        .send()
+    .await
+        .map_err(|e| WsError::DynamoDB(e.to_string()))?;
+    
+    Ok(())
+}
 
 /// Delete all subscriptions for a closing connection.
 /// Queries the connection_id-index GSI, then batch-deletes each row.
