@@ -3,7 +3,7 @@ use aws_sdk_dynamodb::types::AttributeValue;
 use aws_sdk_dynamodb::Client;
 use serde::{Deserialize, Serialize};
 use serde_dynamo::to_item;
-use crate::utils::{now_rfc3339, ttl_hours};
+use crate::utils::{now_rfc3339, return_collection_ids, ttl_hours};
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct ChatSubscription {
@@ -12,6 +12,48 @@ pub struct ChatSubscription {
     pub user_id: String,
     pub subscribed_at: String,
     pub ttl: i64,
+}
+
+pub async fn is_connection_subscribed(
+    dynamo: &Client,
+    table: &str,
+    group_id: &str,
+    connection_id: &str,
+) -> Result<bool, WsError> {
+    let resp = dynamo
+        .get_item()
+        .table_name(table)
+        .key("group_id", AttributeValue::S(group_id.to_string()))
+        .key("connection_id", AttributeValue::S(connection_id.to_string()))
+        // No need to fetch the full item — just check existence
+        .projection_expression("group_id")
+        .send()
+        .await
+        .map_err(|e| WsError::DynamoDB(e.to_string()))?;
+
+    Ok(resp.item().is_some())
+}
+
+/// Returns all connection_ids currently subscribed to a group.
+/// Used by chat-send to fan out a message to every active subscriber.
+pub async fn get_group_subscribers(
+    dynamo: &Client,
+    table: &str,
+    group_id: &str,
+) -> Result<Vec<String>, WsError> {
+    let resp = dynamo
+        .query()
+        .table_name(table)
+        .key_condition_expression("group_id = :gid")
+        .expression_attribute_values(":gid", AttributeValue::S(group_id.to_string()))
+        .projection_expression("connection_id")
+        .send()
+        .await
+        .map_err(|e| WsError::DynamoDB(e.to_string()))?;
+
+    let ids = return_collection_ids(resp);
+
+    Ok(ids)
 }
 
 pub async fn put_subscription(
@@ -28,9 +70,9 @@ pub async fn put_subscription(
         subscribed_at: now_rfc3339(),
         ttl: ttl_hours(24),
     };
-    
+
     let item = to_item(sub).map_err(|e| WsError::Serialization(e.to_string()))?;
-    
+
     dynamo
         .put_item()
         .table_name(table)
@@ -38,7 +80,7 @@ pub async fn put_subscription(
         .send()
         .await
         .map_err(|e| WsError::DynamoDB(e.to_string()))?;
-    
+
     Ok(())
 }
 
@@ -56,7 +98,7 @@ pub async fn delete_subscription(
         .send()
     .await
         .map_err(|e| WsError::DynamoDB(e.to_string()))?;
-    
+
     Ok(())
 }
 

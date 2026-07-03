@@ -7,6 +7,9 @@ pub enum ClientMessage {
 
     #[serde(rename = "chat.join")]
     ChatJoin { group_id: String },
+    
+    #[serde(rename = "chat.send")]
+    ChatSend { group_id: String, content: String },
 
     #[serde(rename = "chat.leave")]
     ChatLeave { group_id: String },
@@ -49,6 +52,20 @@ pub enum ServerPush {
 }
 
 // DynamoDB
+#[derive(Serialize, Deserialize, Debug, Clone)]
+pub struct ChatMessageRecord {
+    pub group_id: String,
+    /// `{rfc3339}#{uuid}` — chronologically sortable, also used as the client-facing message_id.
+    pub sort_key: String,
+    pub message_id: String,
+    pub sender_id: String,
+    pub content: String,
+    pub message_type: String,
+    pub created_at: String,
+}
+
+
+
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct NotificationRecord {
     pub user_id: String,

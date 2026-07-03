@@ -7,7 +7,8 @@ members = [
     "lambdas/korabo-ws-disconnect",
     "lambdas/korabo-ws-info",
     "lambdas/korabo-notification-mark-read",
-    "lambdas/korabo-chat-subscribe"
+    "lambdas/korabo-chat-subscribe",
+    "lambdas/korabo-chat-send"
 ]
 resolver = "2"
 
@@ -26,9 +27,9 @@ serde_dynamo = { version = "4.3.0", features = ["aws-sdk-dynamodb+1"] }
 thiserror = "2.0.18"
 tracing = "0.1.44"
 tracing-subscriber = { version = "0.3.23", features = ["env-filter"] }
-uuid = { version = "1.23.3", features = ["v4"] }
+uuid = { version = "1.23.4", features = ["v4"] }
 base64 = "0.22.1"
-time = { version = "0.3.49", features = ["formatting", "macros"] }
+time = { version = "0.3.51", features = ["formatting", "macros"] }
 jwt = { git = "https://github.com/AhmadAiman2013/korabo-common.git", tag = "0.11.0" }
 claims = { git = "https://github.com/AhmadAiman2013/korabo-common.git", tag = "0.11.0" }
 ws-core = { path = "ws-core" }
