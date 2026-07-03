@@ -4,12 +4,14 @@ use serde_json::Value;
 #[derive(Deserialize, Debug)]
 #[serde(tag = "action")]
 pub enum ClientMessage {
-
     #[serde(rename = "chat.join")]
     ChatJoin { group_id: String },
-    
+
     #[serde(rename = "chat.send")]
     ChatSend { group_id: String, content: String },
+
+    #[serde(rename = "chat.history")]
+    ChatHistory { group_id: String },
 
     #[serde(rename = "chat.leave")]
     ChatLeave { group_id: String },
@@ -17,7 +19,6 @@ pub enum ClientMessage {
 
 #[derive(Serialize, Debug, Clone)]
 pub enum ServerPush {
-    
     #[serde(rename = "connected")]
     Connected {
         last_seen_at: Option<String>,
@@ -33,6 +34,12 @@ pub enum ServerPush {
         created_at: String,
     },
 
+    #[serde(rename = "chat.history")]
+    ChatHistory {
+        group_id: String,
+        messages: Vec<ChatMessageRecord>,
+    },
+
     /// A real-time notification pushed after SQS consumption.
     #[serde(rename = "notification")]
     Notification {
@@ -46,9 +53,9 @@ pub enum ServerPush {
 
     #[serde(rename = "ack")]
     Ack { action: String },
-    
+
     #[serde(rename = "error")]
-    Error { code: String, message: String }
+    Error { code: String, message: String },
 }
 
 // DynamoDB
@@ -63,8 +70,6 @@ pub struct ChatMessageRecord {
     pub message_type: String,
     pub created_at: String,
 }
-
-
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct NotificationRecord {
@@ -97,4 +102,3 @@ pub struct NotificationTargeting {
     pub group_id: Option<String>,
     pub exclude_user_ids: Option<Vec<String>>,
 }
-

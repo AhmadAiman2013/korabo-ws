@@ -1599,6 +1599,21 @@ dependencies = [
 ]
 
 [[package]]
+name = "korabo-chat-history"
+version = "0.1.0"
+dependencies = [
+ "aws-config",
+ "aws-sdk-apigatewaymanagement",
+ "aws-sdk-dynamodb",
+ "aws_lambda_events",
+ "lambda_runtime",
+ "serde_json",
+ "tokio",
+ "tracing",
+ "ws-core",
+]
+
+[[package]]
 name = "korabo-chat-send"
 version = "0.1.0"
 dependencies = [

@@ -1,10 +1,10 @@
-name: korabo-notification-mark-read.yml
+name: korabo-chat-history.yml
 on:
   push:
     branches:
       - master
     paths:
-      - lambdas/korabo-notification-mark-read/**
+      - lambdas/korabo-chat-history/**
       - ws-core/**
 
 permissions:
@@ -16,7 +16,7 @@ jobs:
     runs-on: ubuntu-latest
     defaults:
       run:
-        working-directory: lambdas/korabo-notification-mark-read
+        working-directory: lambdas/korabo-chat-history
 
     steps:
       - name: Checkout code
@@ -43,9 +43,9 @@ jobs:
             ~/.cargo/registry/cache/
             ~/.cargo/git/db/
             ${{ github.workspace }}/target/
-          key: ${{ runner.os }}-cargo-korabo-notification-mark-read-${{ hashFiles('lambdas/korabo-notification-mark-read/Cargo.toml', 'ws-core/Cargo.toml', 'Cargo.lock') }}
+          key: ${{ runner.os }}-cargo-korabo-chat-history-${{ hashFiles('lambdas/korabo-chat-history/Cargo.toml', 'ws-core/Cargo.toml', 'Cargo.lock') }}
           restore-keys: |
-            ${{ runner.os }}-cargo-korabo-notification-mark-read-
+            ${{ runner.os }}-cargo-korabo-chat-history-
 
       - name: Install cargo-lambda (if not cached)
         run: |
@@ -56,4 +56,4 @@ jobs:
       - name: Build and deploy lambda
         run: |
           cargo lambda build --release
-          cargo lambda deploy korabo-notification-mark-read
+          cargo lambda deploy korabo-chat-history

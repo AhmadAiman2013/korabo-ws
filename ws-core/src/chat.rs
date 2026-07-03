@@ -1,6 +1,7 @@
 use std::collections::HashMap;
 use aws_sdk_dynamodb::Client;
 use aws_sdk_dynamodb::types::AttributeValue;
+use serde_dynamo::aws_sdk_dynamodb_1::from_item;
 use serde_dynamo::to_item;
 use uuid::Uuid;
 use crate::errors::WsError;
@@ -42,3 +43,53 @@ pub async fn put_chat_message(
 
     Ok(record)
 }
+
+/// Fetch chat history for a group.
+///
+/// `since` is an RFC 3339 string — only messages with sort_key >= since are returned.
+/// Pass `last_seen_at` from the `connected` push to get only missed messages.
+pub async fn get_chat_history(
+    dynamo: &Client,
+    table: &str,
+    group_id: &str,
+    since: Option<String>,
+) -> Result<Vec<ChatMessageRecord>, WsError> {
+    // Simple query: return all messages for the group (optionally since a given time)
+    let (key_cond, expr_values) = match &since {
+        Some(s) => (
+            "group_id = :gid AND sort_key >= :since".to_string(),
+            vec![
+                (":gid", AttributeValue::S(group_id.to_string())),
+                (":since", AttributeValue::S(s.clone())),
+            ],
+        ),
+        None => (
+            "group_id = :gid".to_string(),
+            vec![(":gid", AttributeValue::S(group_id.to_string()))],
+        ),
+    };
+
+    let mut req = dynamo
+        .query()
+        .table_name(table)
+        .key_condition_expression(key_cond)
+        .scan_index_forward(true); // oldest → newest
+
+    for (k, v) in expr_values {
+        req = req.expression_attribute_values(k, v);
+    }
+
+    let resp = req
+        .send()
+        .await
+        .map_err(|e| WsError::DynamoDB(e.to_string()))?;
+
+    let records = resp
+        .items()
+        .iter()
+        .filter_map(|item| from_item::<ChatMessageRecord>(item.clone()).ok())
+        .collect();
+
+    Ok(records)
+}
+
