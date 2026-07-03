@@ -1,12 +1,12 @@
-use std::env::var;
-use std::sync::Arc;
 use aws_config::BehaviorVersion;
 use aws_lambda_events::apigw::ApiGatewayWebsocketProxyRequest;
-use aws_sdk_dynamodb::Client as DynamoClient;
 use aws_sdk_apigatewaymanagement::config::Builder as ApigwBuilder;
-use lambda_runtime::{run, service_fn, Error, LambdaEvent};
+use aws_sdk_dynamodb::Client as DynamoClient;
 use lambda_runtime::tracing::init_default_subscriber;
+use lambda_runtime::{run, service_fn, Error, LambdaEvent};
 use serde_json::{json, Value};
+use std::env::var;
+use std::sync::Arc;
 use tracing::error;
 use ws_core::chat::put_chat_message;
 use ws_core::connection::get_connection;
@@ -53,7 +53,7 @@ async fn main() -> Result<(), Error> {
             async move { handler(event, s).await }
         },
     ))
-        .await
+    .await
 }
 
 // handler
@@ -71,13 +71,7 @@ async fn handler(
         .as_deref()
         .unwrap_or("unknown");
 
-    let conn = match get_connection(
-        &state.dynamo,
-        &state.connections_table,
-        connection_id,
-    )
-        .await
-    {
+    let conn = match get_connection(&state.dynamo, &state.connections_table, connection_id).await {
         Ok(c) => c,
         Err(e) => {
             error!(connection_id, error = %e, "Connection record not found");
@@ -103,7 +97,7 @@ async fn handler(
             return Ok(ok_resp());
         }
     };
-    
+
     // 1. ensure the user is member of group
 
     let is_subscribed = match is_connection_subscribed(
@@ -117,30 +111,35 @@ async fn handler(
         Ok(v) => v,
         Err(e) => {
             error!(connection_id = %connection_id, group_id = %group_id, error = %e, "Failed to determine group membership");
-            // notify client of internal error (best-effort)
-            let _ = state.apigw.post_to_connection(
-                connection_id,
-                &ServerPush::Error {
-                    code: "INTERNAL_ERROR".into(),
-                    message: "Unable to verify group membership".into(),
-                },
-            ).await;
+
+            let _ = state
+                .apigw
+                .post_to_connection(
+                    connection_id,
+                    &ServerPush::Error {
+                        code: "INTERNAL_ERROR".into(),
+                        message: "Unable to verify group membership".into(),
+                    },
+                )
+                .await;
             return Ok(ok_resp());
         }
     };
 
     if !is_subscribed {
-        // not a member — inform the client (best-effort) and return
-        let _ = state.apigw.post_to_connection(
-            connection_id,
-            &ServerPush::Error {
-                code: "UNAUTHORIZED".into(),
-                message: format!("You are not a member of group {}", group_id),
-            },
-        ).await;
+
+        let _ = state
+            .apigw
+            .post_to_connection(
+                connection_id,
+                &ServerPush::Error {
+                    code: "UNAUTHORIZED".into(),
+                    message: format!("You are not a member of group {}", group_id),
+                },
+            )
+            .await;
         return Ok(ok_resp());
     }
-    
 
     // 2. Persist message.
     let record = match put_chat_message(
@@ -150,7 +149,7 @@ async fn handler(
         &conn.user_id,
         &content,
     )
-        .await
+    .await
     {
         Ok(r) => r,
         Err(e) => {
@@ -180,11 +179,7 @@ async fn handler(
     };
 
     // 4. Fan out to all connections currently subscribed to this group.
-    let subscribers = get_group_subscribers(
-        &state.dynamo,
-        &state.subscriptions_table,
-        &group_id,
-    )
+    let subscribers = get_group_subscribers(&state.dynamo, &state.subscriptions_table, &group_id)
         .await
         .unwrap_or_else(|e| {
             error!(group_id, error = %e, "Failed to fetch group subscribers");
@@ -198,5 +193,4 @@ async fn handler(
     }
 
     Ok(ok_resp())
-    
 }
