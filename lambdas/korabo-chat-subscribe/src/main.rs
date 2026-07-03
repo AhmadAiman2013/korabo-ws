@@ -145,6 +145,20 @@ async fn handler(
                 )
                 .await;
         }
+
+
+        _ => {
+            let _ = state
+                .apigw
+                .post_to_connection(
+                    connection_id,
+                    &ServerPush::Error {
+                        code: "BAD_REQUEST".into(),
+                        message: "Unexpected action for this route".into(),
+                    },
+                )
+                .await;
+        }
     }
 
     Ok(json!({"statusCode" : 200}))

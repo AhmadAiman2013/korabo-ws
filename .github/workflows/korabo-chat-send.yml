@@ -1,4 +1,4 @@
-name: korabo-chat-subscribe.yml
+name: korabo-chat-send.yml
 on:
   push:
     branches:
