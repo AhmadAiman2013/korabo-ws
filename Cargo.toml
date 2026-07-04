@@ -9,7 +9,8 @@ members = [
     "lambdas/korabo-notification-mark-read",
     "lambdas/korabo-chat-subscribe",
     "lambdas/korabo-chat-send",
-    "lambdas/korabo-chat-history"
+    "lambdas/korabo-chat-history",
+    "lambdas/korabo-chat-history-api"
 ]
 resolver = "2"
 

@@ -76,7 +76,7 @@ async fn handler(
 
     let body = event.payload.body.unwrap_or_default();
     let group_id = match serde_json::from_str::<ClientMessage>(&body) {
-        Ok(ClientMessage::ChatHistory { group_id}) => group_id,
+        Ok(ClientMessage::ChatHistoryUnseen { group_id}) => group_id,
         Ok(_) => return Ok(ok_resp()),
         Err(e) => {
             let _ = state
@@ -144,13 +144,15 @@ async fn handler(
         }
     };
 
+    let messages_ids = messages.into_iter().map(|m| m.message_id).collect::<Vec<_>>();
+
     let _ = state
         .apigw
         .post_to_connection(
             connection_id,
-            &ServerPush::ChatHistory {
+            &ServerPush::ChatHistoryUnseen {
                 group_id,
-                messages,
+                messages_ids,
             },
         )
         .await;

@@ -11,7 +11,7 @@ pub enum ClientMessage {
     ChatSend { group_id: String, content: String },
 
     #[serde(rename = "chat.history")]
-    ChatHistory { group_id: String },
+    ChatHistoryUnseen { group_id: String },
 
     #[serde(rename = "chat.leave")]
     ChatLeave { group_id: String },
@@ -35,9 +35,9 @@ pub enum ServerPush {
     },
 
     #[serde(rename = "chat.history")]
-    ChatHistory {
+    ChatHistoryUnseen {
         group_id: String,
-        messages: Vec<ChatMessageRecord>,
+        messages_ids: Vec<String>,
     },
 
     /// A real-time notification pushed after SQS consumption.

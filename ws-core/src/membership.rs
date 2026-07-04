@@ -14,7 +14,7 @@ pub fn member_sk(user_id: &str) -> AttributeValue {
     AttributeValue::S(format!("MEMBER#{user_id}"))
 }
 
-async fn assert_group_member(
+pub async fn assert_group_member(
     dynamo: &Client,
     members_table: &str,
     group_id: &str,

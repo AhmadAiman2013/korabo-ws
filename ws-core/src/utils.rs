@@ -1,4 +1,6 @@
 use aws_sdk_dynamodb::operation::query::QueryOutput;
+use axum::Json;
+use serde_json::{json, Value};
 use time::format_description::well_known::Rfc3339;
 use time::OffsetDateTime;
 
@@ -22,4 +24,12 @@ pub fn return_collection_ids(response: QueryOutput) -> Vec<String> {
                 .cloned()
         })
         .collect()
+}
+
+pub async fn health_check() -> Json<Value> {
+    let health = true;
+    match health {
+        true => Json(json!({ "status": "healthy" })),
+        false => Json(json!({ "status": "unhealthy" })),
+    }
 }

@@ -93,3 +93,68 @@ pub async fn get_chat_history(
     Ok(records)
 }
 
+/// Fetch a single page of chat history for a group.
+///
+/// `cursor` is an optional last-seen `sort_key` from a previous page. The query
+/// will return messages with `sort_key > cursor`. `limit` controls the maximum
+/// number of items returned (DynamoDB Query `Limit`). Returns the messages and
+/// an optional next_cursor (the last returned message's `sort_key`) when more
+/// items are available.
+pub async fn get_chat_history_page(
+    dynamo: &Client,
+    table: &str,
+    group_id: &str,
+    cursor: Option<String>,
+    limit: Option<i32>,
+) -> Result<(Vec<ChatMessageRecord>, Option<String>), WsError> {
+    // Build key condition expression depending on whether a cursor is present.
+    let (key_cond, mut expr_values) = match &cursor {
+        Some(c) => (
+            "group_id = :gid AND sort_key > :cursor".to_string(),
+            vec![
+                (":gid", AttributeValue::S(group_id.to_string())),
+                (":cursor", AttributeValue::S(c.clone())),
+            ],
+        ),
+        None => (
+            "group_id = :gid".to_string(),
+            vec![(":gid", AttributeValue::S(group_id.to_string()))],
+        ),
+    };
+
+    let mut req = dynamo
+        .query()
+        .table_name(table)
+        .key_condition_expression(key_cond)
+        .scan_index_forward(true); // oldest → newest
+
+    for (k, v) in expr_values.drain(..) {
+        req = req.expression_attribute_values(k, v);
+    }
+
+    if let Some(l) = limit {
+        req = req.limit(l);
+    }
+
+    let resp = req
+        .send()
+        .await
+        .map_err(|e| WsError::DynamoDB(e.to_string()))?;
+
+    let records: Vec<ChatMessageRecord> = resp
+        .items()
+        .iter()
+        .filter_map(|item| from_item::<ChatMessageRecord>(item.clone()).ok())
+        .collect();
+
+    // If DynamoDB returned a LastEvaluatedKey it means there are more items.
+    // Use the last returned record's sort_key as an opaque cursor for the next page.
+    let next_cursor = if resp.last_evaluated_key().is_some() {
+        records.last().map(|r| r.sort_key.clone())
+    } else {
+        None
+    };
+
+    Ok((records, next_cursor))
+}
+
