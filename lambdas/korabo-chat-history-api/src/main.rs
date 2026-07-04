@@ -7,7 +7,7 @@ use lambda_http::{run, Error};
 use aws_sdk_dynamodb::Client as DynamoClient;
 use axum::{Json, Router};
 use axum::extract::State;
-use axum::routing::get;
+use axum::routing::{get, post};
 use jwt::{AuthClaims, JwtPublicKey};
 use serde::Deserialize;
 use serde_json::{json, Value};
@@ -84,7 +84,7 @@ async fn main() -> Result<(), Error> {
             "/chat",
             Router::new()
                 .route("/health", get(health_check))
-                .route("/chat-history", get(chat_message_history))
+                .route("/chat-history", post(chat_message_history))
                 .with_state(state),
         )
         .layer(cors);
