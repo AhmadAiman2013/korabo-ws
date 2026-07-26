@@ -150,3 +150,35 @@ pub async fn delete_connection_subscriptions(
 
     Ok(())
 }
+
+pub async fn get_connection_groups(
+    dynamo: &Client,
+    table: &str,
+    connection_id: &str,
+) -> Result<Vec<String>, WsError> {
+    let resp = dynamo
+        .query()
+        .table_name(table)
+        .index_name("connection_id-index")
+        .key_condition_expression("connection_id = :cid")
+        .expression_attribute_values(
+            ":cid",
+            AttributeValue::S(connection_id.to_string()),
+        )
+        .projection_expression("group_id")
+        .send()
+        .await
+        .map_err(|e| WsError::DynamoDB(e.to_string()))?;
+
+    let groups = resp
+        .items()
+        .iter()
+        .filter_map(|item| {
+            item.get("group_id")
+                .and_then(|v| v.as_s().ok())
+                .cloned()
+        })
+        .collect();
+
+    Ok(groups)
+}

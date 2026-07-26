@@ -43,6 +43,13 @@ pub enum ServerPush {
         messages_ids: Vec<String>,
     },
 
+    #[serde(rename = "chat.presence")]
+    ChatOnlinePresence {
+        group_id: String,
+        user_id: String,
+        status: String,
+    },
+
     /// A real-time notification pushed after SQS consumption.
     #[serde(rename = "notification")]
     Notification {

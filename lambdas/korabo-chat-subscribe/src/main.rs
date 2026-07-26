@@ -11,7 +11,7 @@ use ws_core::connection::get_connection;
 use ws_core::management::ManagementClient;
 use ws_core::membership::require_connection_and_membership;
 use ws_core::presence::update_last_seen;
-use ws_core::subscription::{delete_subscription, put_subscription};
+use ws_core::subscription::{delete_subscription, get_group_subscribers, put_subscription};
 use ws_core::types::{ClientMessage, ServerPush};
 
 struct State {
@@ -126,6 +126,27 @@ async fn handler(
                     },
                 )
                 .await;
+
+            let subscribers = get_group_subscribers(&state.dynamo, &state.subscriptions_table, &group_id)
+                .await
+                .unwrap_or_else(|e| {
+                    error!(group_id, error = %e, "Failed to fetch group subscribers");
+                    vec![]
+                });
+            
+            for conn_id in &subscribers {
+                state.
+                    apigw
+                    .push_or_ignore_gone(
+                        conn_id,
+                        &ServerPush::ChatOnlinePresence {
+                            group_id: group_id.clone(),
+                            user_id: conn.user_id.clone(),
+                            status: "online".into(),
+                        },
+                    )
+                    .await;
+            }
         }
 
         ClientMessage::ChatLeave { group_id } => {
