@@ -78,6 +78,35 @@ async fn handler(
         }
     };
 
+    let group_ids = get_connection_groups(&state.dynamo, &state.subscriptions_table, connection_id).await?;
+
+    for id in group_ids {
+        let subscribers = get_group_subscribers(&state.dynamo, &state.subscriptions_table, &id)
+            .await
+            .unwrap_or_else(|e| {
+                error!(id, error = %e, "Failed to fetch group subscribers");
+                vec![]
+            });
+
+        for conn_id in &subscribers {
+            if conn_id == connection_id {
+                continue
+            }
+            state.
+                apigw
+                .push_or_ignore_gone(
+                    conn_id,
+                    &ServerPush::ChatOnlinePresence {
+                        group_id: id.clone(),
+                        user_id: user_id.clone(),
+                        status: "offline".into(),
+                    },
+                )
+                .await;
+        }
+    }
+
+
     if let Err(e) = delete_connection(&state.dynamo, &state.connections_table, connection_id).await
     {
         error!(connection_id, error = %e, "Failed to delete connection record");
@@ -92,32 +121,6 @@ async fn handler(
 
     if let Err(e) = update_last_seen(&state.dynamo, &state.presence_table, &user_id).await {
         error!(user_id, error = %e, "Failed to update user presence");
-    }
-
-    let group_ids = get_connection_groups(&state.dynamo, &state.subscriptions_table, connection_id).await?;
-
-    for id in group_ids {
-        let subscribers = get_group_subscribers(&state.dynamo, &state.subscriptions_table, &id)
-            .await
-            .unwrap_or_else(|e| {
-                error!(id, error = %e, "Failed to fetch group subscribers");
-                vec![]
-            });
-
-
-        for conn_id in &subscribers {
-            state.
-                apigw
-                .push_or_ignore_gone(
-                    conn_id,
-                    &ServerPush::ChatOnlinePresence {
-                        group_id: id.clone(),
-                        user_id: user_id.clone(),
-                        status: "offline".into(),
-                    },
-                )
-                .await;
-        }
     }
 
 
