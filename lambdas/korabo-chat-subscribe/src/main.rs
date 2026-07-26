@@ -150,7 +150,7 @@ async fn handler(
                 )
                 .await;
         }
-        
+
         ClientMessage::ChatMarkSeen {group_id } => {
             let user_id = match get_connection(&state.dynamo, &state.connections_table, connection_id).await
             {
@@ -160,7 +160,7 @@ async fn handler(
                     return Ok(json!({ "statusCode": 200 }));
                 }
             };
-            
+
             if let Err(e) = update_last_seen(
                 &state.dynamo,
                 &state.presence_table,
@@ -176,7 +176,7 @@ async fn handler(
                 .post_to_connection(
                     connection_id,
                     &ServerPush::Ack {
-                        action: "chat.markseen".into(),
+                        action: "chat.mark-seen".into(),
                     },
                 )
                 .await;
