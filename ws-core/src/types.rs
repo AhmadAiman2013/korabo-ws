@@ -13,6 +13,9 @@ pub enum ClientMessage {
     #[serde(rename = "chat.history")]
     ChatHistoryUnseen { group_id: String },
 
+    #[serde(rename = "chat.mark-seen")]
+    ChatMarkSeen { group_id: String },
+
     #[serde(rename = "chat.leave")]
     ChatLeave { group_id: String },
 }

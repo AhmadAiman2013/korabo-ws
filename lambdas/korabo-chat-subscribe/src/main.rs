@@ -7,8 +7,10 @@ use lambda_runtime::{run, service_fn, Error, LambdaEvent};
 use serde_json::{json, Value};
 use std::env::var;
 use std::sync::Arc;
+use ws_core::connection::get_connection;
 use ws_core::management::ManagementClient;
 use ws_core::membership::require_connection_and_membership;
+use ws_core::presence::update_last_seen;
 use ws_core::subscription::{delete_subscription, put_subscription};
 use ws_core::types::{ClientMessage, ServerPush};
 
@@ -17,6 +19,7 @@ struct State {
     apigw: ManagementClient,
     connections_table: String,
     subscriptions_table: String,
+    presence_table: String,
     members_table: String,
 }
 
@@ -36,6 +39,7 @@ async fn main() -> Result<(), Error> {
     let connections_table = String::from("korabo_ws_connections");
     let subscriptions_table = String::from("korabo_ws_chat_subscription");
     let members_table = String::from("korabo_group_members");
+    let presence_table = String::from("korabo_ws_user_presence");
 
     let state = Arc::new(State {
         dynamo,
@@ -43,6 +47,7 @@ async fn main() -> Result<(), Error> {
         connections_table,
         subscriptions_table,
         members_table,
+        presence_table
     });
 
     run(service_fn(
@@ -141,6 +146,37 @@ async fn handler(
                     connection_id,
                     &ServerPush::Ack {
                         action: "chat.leave".into(),
+                    },
+                )
+                .await;
+        }
+        
+        ClientMessage::ChatMarkSeen {group_id } => {
+            let user_id = match get_connection(&state.dynamo, &state.connections_table, connection_id).await
+            {
+                Ok(conn) => conn.user_id,
+                Err(e) => {
+                    error!(connection_id, error = %e, "Connection record not found on disconnect");
+                    return Ok(json!({ "statusCode": 200 }));
+                }
+            };
+            
+            if let Err(e) = update_last_seen(
+                &state.dynamo,
+                &state.presence_table,
+                &user_id
+            ).await
+            {
+                error!(connection_id, group_id, error = %e, "Failed to update last seen");
+                return Ok(json!({ "statusCode": 500 }));
+            }
+
+            let _ = state
+                .apigw
+                .post_to_connection(
+                    connection_id,
+                    &ServerPush::Ack {
+                        action: "chat.markseen".into(),
                     },
                 )
                 .await;
