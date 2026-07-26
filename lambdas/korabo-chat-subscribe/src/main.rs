@@ -133,8 +133,11 @@ async fn handler(
                     error!(group_id, error = %e, "Failed to fetch group subscribers");
                     vec![]
                 });
-            
+
             for conn_id in &subscribers {
+                if conn_id == connection_id {
+                    continue;
+                }
                 state.
                     apigw
                     .push_or_ignore_gone(
