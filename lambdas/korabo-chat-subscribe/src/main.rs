@@ -135,9 +135,6 @@ async fn handler(
                 });
 
             for conn_id in &subscribers {
-                if conn_id == connection_id {
-                    continue;
-                }
                 state.
                     apigw
                     .push_or_ignore_gone(
